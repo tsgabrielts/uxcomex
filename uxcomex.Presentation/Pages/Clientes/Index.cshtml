@@ -1,0 +1,23 @@
+﻿@page
+@model uxcomex.Presentation.Pages.Clientes.IndexModel
+@{
+    var tableConfig = new DataTableViewModel
+    {
+        Title = "Clientes",
+        EntityName = "Cliente",
+        CreateUrl = "/Clientes/Create",
+        EditUrlTemplate = "/Clientes/Create/{id}",
+        DeleteHandler = "/Clientes?handler=Delete",
+        AllowEdit = true,
+        Columns = new[] { "Nome", "Email", "Telefone" },
+        Items = Model.Clientes.Select(c => new DataTableItem
+        {
+            Id = c.cli_id,
+            Values = new[] { c.cli_nome, c.cli_email, c.cli_telefone }
+        }).ToList()
+    };
+}
+
+@await Html.PartialAsync("_DataTablePartial", tableConfig)
+
+<script src="~/js/data-table.js"></script>

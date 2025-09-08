@@ -1,0 +1,383 @@
+﻿@page
+@model uxcomex.Presentation.Pages.Pedidos.CreateModel
+@{
+    ViewData["Title"] = "Novo Pedido";
+}
+
+@if (TempData["Erro"] != null)
+{
+    @section Scripts
+    {
+        <script>
+            Swal.fire({
+                icon: 'error',
+                title: 'Erro!',
+                    text: '@TempData["Erro"]'
+            });
+        </script>
+    }
+}
+
+    <div class="row mb-5 mb-2">
+        <div class="col-md-12 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h4><i class="fa fa-plus-circle" ></i> Criar Novo Pedido</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+                        <!-- Informações do Pedido -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label asp-for="NovoPedido.ClienteId" class="form-label"></label>
+                                    <select asp-for="NovoPedido.ClienteId"
+                                            class="form-select select2-clientes"
+                                            asp-items="Model.ClientesSelect">
+                                        <option value="">-- Selecione um Cliente --</option>
+                                    </select>
+                                    <span asp-validation-for="NovoPedido.ClienteId" class="text-danger"></span>
+                                </div>
+                            </div>
+                            
+                        </div>
+
+                        <!-- Itens do Pedido -->
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">Itens do Pedido</h5>
+                                <button type="button" class="btn btn-sm btn-success" onclick="adicionarItem()">
+                                    <i class="fa fa-plus"></i> Adicionar Item
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <div id="itens-container">
+                                    @for (int i = 0; i < Model.Itens.Count; i++)
+                                    {
+                                        <div class="row item-row mb-3" data-index="@i">
+                                            <div class="col-md-5">
+                                                <select name="Itens[@i].ProdutoId"
+                                                        class="form-select produto-select select2-produtos"
+                                                        asp-items="Model.ProdutosSelect"
+                                                        onchange="atualizarProduto(this, @i)">
+                                                    <option value="">-- Selecione um Produto --</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <input name="Itens[@i].Quantidade"
+                                                       class="form-control quantidade-input"
+                                                       type="number"
+                                                       min="0"
+                                                       placeholder="Qtd"
+                                                       onchange="calcularSubtotal(@i)" />
+                                            </div>
+                                            <div class="col-md-2">
+                                                <input name="Itens[@i].PrecoUnitario"
+                                                       class="form-control preco-input"
+                                                       type="number"
+                                                       placeholder="Preço"
+                                                       readonly />
+                                            </div>
+                                            <div class="col-md-2">
+                                                <input name="Itens[@i].Subtotal"
+                                                       class="form-control subtotal-input"
+                                                       type="number"
+                                                       placeholder="Subtotal"
+                                                       readonly />
+                                            </div>
+                                            <div class="col-md-1">
+                                                <button type="button" class="btn btn-danger btn-sm" onclick="removerItem(@i)">
+                                                    <i class="fa fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Total e Ações -->
+                        <div class="row mt-4">
+                            <div class="col-md-8"></div>
+                            <div class="col-md-4">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h5>Valor Total: <span id="valor-total" class="text-success">R$ 0,00</span></h5>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mt-3">
+                            <div class="col-12 d-flex justify-content-end">
+                                <a href="/Pedidos" class="btn btn-secondary me-2">Cancelar</a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fa fa-save"></i> Salvar Pedido
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+@section Scripts {
+    <!-- Select2 CSS e JS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+
+    <!-- Select2 Bootstrap 5 Theme -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2-bootstrap-5-theme/1.3.0/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+
+    <script>
+        let itemIndex = @Model.Itens.Count;
+
+        // Inicializar Select2 ao carregar a página
+        $(document).ready(function() {
+            inicializarSelect2();
+        });
+
+        function inicializarSelect2() {
+            // Select2 para clientes
+            $('.select2-clientes').select2({
+                theme: 'bootstrap-5',
+                placeholder: '-- Pesquisar Cliente --',
+                allowClear: true,
+                width: '100%'
+            });
+
+            // Select2 para produtos
+            $('.select2-produtos').select2({
+                theme: 'bootstrap-5',
+                placeholder: '-- Pesquisar Produto --',
+                allowClear: true,
+                width: '100%',
+                templateResult: formatarProduto,
+                templateSelection: formatarSelecaoProduto
+            });
+        }
+
+        // Formatar exibição dos produtos no dropdown
+        function formatarProduto(produto) {
+            if (!produto.id) {
+                return produto.text;
+            }
+
+            var texto = produto.text;
+            var partes = texto.split(' - ');
+            if (partes.length >= 2) {
+                var nome = partes[0];
+                var info = partes.slice(1).join(' - ');
+
+                var $produto = $(
+                    '<div class="produto-option">' +
+                        '<div class="produto-nome fw-bold">' + nome + '</div>' +
+                        '<div class="produto-info text-muted small">' + info + '</div>' +
+                    '</div>'
+                );
+                return $produto;
+            }
+
+            return produto.text;
+        }
+
+        // Formatar exibição do produto selecionado
+        function formatarSelecaoProduto(produto) {
+            if (!produto.id) {
+                return produto.text;
+            }
+
+            var texto = produto.text;
+            var partes = texto.split(' - ');
+            return partes[0]; // Retorna apenas o nome
+        }
+
+        function adicionarItem() {
+            const container = document.getElementById('itens-container');
+            const novoItem = `
+                <div class="row item-row mb-3" data-index="${itemIndex}">
+                    <div class="col-md-5 mb-3 mb-md-0">
+                        <select name="Itens[${itemIndex}].ProdutoId" class="form-select produto-select select2-produtos" onchange="atualizarProduto(this, ${itemIndex})">
+                            <option value="">-- Selecione um Produto --</option>
+                            @foreach (var produto in Model.ProdutosSelect)
+                            {
+                                    <option value="@produto.Value">@produto.Text</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-2 mb-3 mb-md-0">
+                        <input name="Itens[${itemIndex}].Quantidade" class="form-control quantidade-input" type="number" min="0" placeholder="Qtd" onchange="calcularSubtotal(${itemIndex})" />
+                    </div>
+                    <div class="col-md-2 mb-3 mb-md-0">
+                        <input name="Itens[${itemIndex}].PrecoUnitario" class="form-control preco-input" type="number" step="0.01" placeholder="Preço" readonly />
+                    </div>
+                    <div class="col-md-2 mb-3 mb-md-0">
+                        <input  name="Itens[${itemIndex}].Subtotal" class="form-control subtotal-input" type="number" step="0.01" placeholder="Subtotal" readonly />
+                    </div>
+                    <div class="col-md-1 mb-3 mb-md-0 d-flex items-align-center">
+                        <button type="button" class="btn d-flex align-items-center justify-content-center w-100 btn-danger btn-sm" onclick="removerItem(${itemIndex})">
+                            <i class="fa fa-trash mt-1 me-2 me-md-0"></i> <span class="d-block d-md-none">Remover</span>
+                        </button>
+                    </div>
+                </div>
+            `;
+            container.insertAdjacentHTML('afterbegin', novoItem);
+
+            // Inicializar Select2 no novo item adicionado
+            const novoSelect = container.querySelector(`[data-index="${itemIndex}"] .select2-produtos`);
+            $(novoSelect).select2({
+                theme: 'bootstrap-5',
+                placeholder: '-- Pesquisar Produto --',
+                allowClear: true,
+                width: '100%',
+                templateResult: formatarProduto,
+                templateSelection: formatarSelecaoProduto
+            });
+
+            itemIndex++;
+        }
+
+        function removerItem(index) {
+            const item = document.querySelector(`[data-index="${index}"]`);
+            if (item) {
+                // Destruir Select2 antes de remover o elemento
+                $(item).find('.select2-produtos').select2('destroy');
+                item.remove();
+                calcularTotal();
+            }
+        }
+
+        function atualizarProduto(select, index) {
+            var produtoId = select.value;
+            if (!produtoId) return;
+
+            fetch(`/Pedidos/Create?handler=ProdutoInfo&produtoId=${produtoId}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data) {
+                        console.log(data)
+                        if(data.estoque < 1) {
+
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Sem estoque!',
+                                text: 'Produto ausente no estoque.'
+                            });
+
+                            select.value = "";
+
+                    if ($(select).hasClass("select2-produtos")) {
+                        $(select).val("").trigger("change");
+                    }
+
+                        } else {
+                        var precoInput = document.querySelector(`input[name="Itens[${index}].PrecoUnitario"]`);
+                        precoInput.value = data.preco; // fill with the price
+                        calcularSubtotal(index);
+                        }
+                    }
+                });
+
+        }
+
+
+        function calcularSubtotal(index) {
+            const row = document.querySelector(`[data-index="${index}"]`);
+            const quantidade = parseFloat(row.querySelector('.quantidade-input').value) || 0;
+            const preco = parseFloat(row.querySelector('.preco-input').value) || 0;
+            const subtotal = quantidade * preco;
+            row.querySelector('.subtotal-input').value = subtotal.toFixed(2);
+            calcularTotal();
+        }
+
+        function calcularTotal() {
+            let total = 0;
+            document.querySelectorAll('.subtotal-input').forEach(input => {
+                total += parseFloat(input.value) || 0;
+            });
+
+            document.getElementById('valor-total').textContent =
+                total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        }
+
+
+    </script>
+
+    <style>
+        /* Estilos para garantir que o Select2 funcione corretamente */
+        .select2-container {
+            width: 100% !important;
+        }
+
+        .select2-container--default .select2-search--dropdown .select2-search__field {
+            border: 1px solid #ced4da;
+            border-radius: 0.375rem;
+            padding: 0.375rem 0.75rem;
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+
+        .select2-container--default .select2-selection--single {
+            height: 38px !important;
+            border: 1px solid #ced4da !important;
+            border-radius: 0.375rem !important;
+        }
+
+            .select2-container--default .select2-selection--single .select2-selection__rendered {
+                line-height: 36px !important;
+                padding-left: 12px !important;
+                padding-right: 20px !important;
+            }
+
+            .select2-container--default .select2-selection--single .select2-selection__arrow {
+                height: 36px !important;
+            }
+
+        .select2-dropdown {
+            border: 1px solid #ced4da !important;
+            border-radius: 0.375rem !important;
+        }
+
+        .produto-option {
+            padding: 8px 12px;
+            border-bottom: 1px solid #f8f9fa;
+        }
+
+            .produto-option:last-child {
+                border-bottom: none;
+            }
+
+        .produto-nome {
+            font-size: 14px;
+            font-weight: 600;
+            color: #212529;
+        }
+
+        .produto-info {
+            font-size: 12px;
+            color: #6c757d;
+            margin-top: 2px;
+        }
+
+        .alerta-estoque {
+            margin-top: 5px;
+        }
+
+        /* Highlighting para search */
+        .select2-results__option--highlighted {
+            background-color: #007bff !important;
+            color: white !important;
+        }
+
+        .select2-results__option--highlighted .produto-info {
+            color: #e3f2fd !important;
+        }
+    </style>
+}

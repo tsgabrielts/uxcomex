@@ -1,0 +1,92 @@
+﻿@model uxcomex.Presentation.ViewModels.DataTableViewModel
+<h2>@Model.Title</h2>
+    <form style="display:none;">
+        @Html.AntiForgeryToken()
+    </form>
+    <div class="row">
+        <div class="col-10 col-sm-8 col-md-9 col-lg-10">
+            <input type="text" id="searchInput" class="form-control mb-3"
+                   placeholder="Pesquisar @Model.EntityName.ToLower()..." />
+        </div>
+        <div class="col-2 col-sm-4 col-md-3 col-lg-2">
+            <a class="btn btn-success mb-3 w-100" href="@Model.CreateUrl">
+                + <span class="d-sm-inline d-none">Novo @Model.EntityName.ToLower()</span>
+            </a>
+        </div>
+    </div>
+    
+@if (Model.Items.Any())
+{
+
+        var allowEdit = Model.AllowEdit ?? false;
+
+    <table class="table" id="@(Model.EntityName.ToLower())sTable">
+        <thead>
+            <tr>
+                @foreach (var column in Model.Columns)
+                {
+                    <th>@column</th>
+                }
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.Items)
+            {
+                <tr data-id="@item.Id" >
+                    @foreach (var value in item.Values)
+                    {
+                        <td>@value</td>
+                    }
+                    <td>
+                        <div class="d-flex align-items-center">
+                            @if (allowEdit)
+                            {
+                                <a href="@Model.EditUrlTemplate.Replace("{id}", item.Id.ToString())"
+                                   class="btn btn-primary d-flex align-items-center btn-sm me-1">
+                                    <i class="fa fa-edit me-1"></i> <span class="d-none d-md-block">Editar</span>
+                                </a>
+                            } else
+                            {
+                                <a href="@Model.DetailUrlTemplate.Replace("{id}", item.Id.ToString())"
+                                   class="btn btn-primary d-flex align-items-center btn-sm me-1">
+                                    <i class="fa fa-eye me-1"></i> <span class="d-none d-md-block">Ver</span>
+                                </a>
+                            }
+                            <button type="button" class="btn btn-danger d-flex align-items-center me-1 btn-sm delete-btn" data-id="@item.Id">
+                                <i class="fa fa-trash me-1"></i> <span class="d-none d-md-block">Excluir</span>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    
+}
+else
+{
+    <div class="alert alert-warning">⚠️ Nenhum @Model.EntityName.ToLower() encontrado.</div>
+}
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <script>
+        Swal.fire({
+            icon: 'success',
+            title: 'Sucesso!',
+                text: '@TempData["SuccessMessage"]'
+        });
+    </script>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <script>
+        Swal.fire({
+            icon: 'error',
+            title: 'Erro!',
+                text: '@TempData["ErrorMessage"]'
+        });
+    </script>
+}

@@ -1,0 +1,402 @@
+﻿@page "/Pedidos/Details/{id:guid}"
+@model uxcomex.Presentation.Pages.Pedidos.DetailsModel
+@{
+    ViewData["Title"] = "Detalhes do Pedido";
+}
+
+@if (TempData["Erro"] != null)
+{
+    <script>
+        Swal.fire({
+            icon: 'error',
+            title: 'Erro!',
+            text: '@TempData["Erro"]'
+        });
+    </script>
+}
+<form>
+
+@Html.AntiForgeryToken()
+</form>
+
+    @if (Model.Pedido != null)
+    {
+        <!-- Cards de Informações -->
+        <div class="row">
+            <!-- Informações Gerais -->
+            <div class="col-lg-6 col-md-12 mb-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">
+                            <i class="fa fa-info-circle"></i> Informações Gerais
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- Número do Pedido -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-muted">
+                                Nº do Pedido:
+                            </label>
+                            <p class="mb-2 fs-6">
+                                <span class="badge bg-secondary fs-6">
+                                    @Model.Pedido.ped_id
+                                </span>
+                            </p>
+                        </div>
+
+                        <!-- Cliente -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-muted">
+                                Cliente:
+                            </label>
+                            <p class="mb-2 h6 text-dark">
+                                <i class="fa fa-user text-primary"></i>
+                                @Model.Pedido.cli_nome
+                            </p>
+                        </div>
+
+                        <!-- Data do Pedido -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-muted">
+                                Data do Pedido:
+                            </label>
+                            <p class="mb-2">
+                                <i class="fa fa-calendar text-info"></i>
+                                @Model.Pedido.ped_data.ToString("dd/MM/yyyy HH:mm")
+                            </p>
+                        </div>
+
+                        <!-- Status -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-muted">
+                                Status:
+                            </label>
+                            <p class="mb-0">
+                                @{
+                                    string statusClass = Model.Pedido.ped_status switch
+                                    {
+                                        "Pendente" => "bg-warning text-dark",
+                                        "Aprovado" => "bg-success",
+                                        "Cancelado" => "bg-danger",
+                                        "Finalizado" => "bg-primary",
+                                        _ => "bg-secondary"
+                                    };
+                                }
+                                <span id="status" class="badge @statusClass fs-6">
+                                    @Model.Pedido.ped_status
+                                </span>
+                                <button type="button"
+                                        class="btn btn-sm btn-outline-primary"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#statusModal"
+                                        title="Alterar Status">
+                                    <i class="fa fa-edit"></i>
+                                </button>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Resumo -->
+            <div class="col-lg-6 col-md-12 mb-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">
+                            <i class="fa fa-chart-bar"></i> Resumo do pedido
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        @if (Model.Produtos?.Any() == true)
+                        {
+                            <div class="row text-center">
+                            <!-- Total do Pedido -->
+                            <div class="col-12 mb-3 d-flex flex-column justify-content-center">
+                                    <div class="text-center">
+                                        <label class="form-label fw-bold text-muted mb-3">
+                                            Valor Total:
+                                        </label>
+                                        <div class="display-4 text-success fw-bold mb-3">
+                                            R$ @Model.Pedido.ped_valor_total
+                                        </div>
+                                    </div>
+                                </div>
+                            <!-- Total de Produtos -->
+                                <div class="col-6 mb-3">
+                                    <div class="border rounded p-2">
+                                        <div class="h4 text-primary mb-1">
+                                            @Model.Produtos.Count
+                                        </div>
+                                        <small class="text-muted">Produtos</small>
+                                    </div>
+                                </div>
+
+                                <!-- Quantidade Total -->
+                                <div class="col-6 mb-3">
+                                    <div class="border rounded p-2">
+                                        <div class="h4 text-warning mb-1">
+                                            @Model.Produtos.Sum(p => p.Quantidade ?? 0)
+                                        </div>
+                                        <small class="text-muted">Qtd Total</small>
+                                    </div>
+                                </div>
+
+                                <!-- Preço Médio -->
+                                <div class="col-12">
+                                    <div class="border rounded p-2">
+                                        <div class="h6 text-success mb-1">
+                                            R$ @(Model.Produtos
+                                            .Where(p => p.PrecoUnitario.HasValue)
+                                            .Average(p => p.PrecoUnitario.Value)
+                                            .ToString("N2"))
+                                </div>
+                                <small class="text-muted">Preço Médio</small>
+                            </div>
+                        </div>
+                    </div>
+                                        }
+                        else
+                        {
+                            <div class="text-center text-muted">
+                                <i class="fa fa-box-open fa-2x mb-2"></i>
+                                <p>Nenhum item encontrado</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Itens do Pedido -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-dark text-white">
+                        <h5 class="mb-0">
+                            <i class="fa fa-shopping-cart"></i> Itens do Pedido
+                            @if (Model.Produtos?.Any() == true)
+                            {
+                                <span class="badge bg-light text-dark ms-2">
+                                    @Model.Produtos.Count
+                                </span>
+                            }
+                        </h5>
+                    </div>
+                    <div class="card-body p-0">
+                        @if (Model.Produtos?.Any() == true)
+                        {
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th class="text-center" width="5%">#</th>
+                                            <th width="35%">
+                                                <i class="fa fa-box text-primary"></i>
+                                                Produto
+                                            </th>
+                                            <th class="text-center" width="15%">
+                                                <i class="fa fa-sort-numeric-up text-info"></i>
+                                                Quantidade
+                                            </th>
+                                            <th class="text-end" width="20%">
+                                                <i class="fa fa-tag text-warning"></i>
+                                                Preço Unitário
+                                            </th>
+                                            <th class="text-end" width="25%">
+                                                <i class="fa fa-calculator text-success"></i>
+                                                Subtotal
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @for (int i = 0; i < Model.Produtos.Count; i++)
+                                        {
+                                            var item = Model.Produtos[i];
+                                            <tr class="align-middle">
+                                                <!-- Número do Item -->
+                                                <td class="text-center fw-bold text-muted">
+                                                    @(i + 1)
+                                                </td>
+
+                                                <!-- Nome do Produto -->
+                                                <td>
+                                                    <div class="d-flex align-items-center">
+                                                        <div>
+                                                            <div class="fw-semibold">
+                                                                @(item.pro_nome ?? "Produto não informado")
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+
+                                                <!-- Quantidade -->
+                                                <td class="text-center">
+                                                    <span class="badge bg-info bg-opacity-10 text-info px-3 py-2 fs-6">
+                                                        @(item.Quantidade ?? 0)
+                                                    </span>
+                                                </td>
+
+                                                <!-- Preço Unitário -->
+                                                <td class="text-end">
+                                                    <span class="fw-semibold text-dark">
+                                                        R$ @((item.PrecoUnitario ?? 0).ToString("N2"))
+                                                    </span>
+                                                </td>
+
+                                                <!-- Subtotal -->
+                                                <td class="text-end">
+                                                    <span class="fw-bold text-success fs-6">
+                                                        R$ @((item.Subtotal ?? 0))
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                    <tfoot class="table-light">
+                                        <tr>
+                                            <td colspan="4" class="text-end fw-bold fs-5">
+                                                <i class="fa fa-calculator me-2"></i>
+                                                Total Geral:
+                                            </td>
+                                            <td class="text-end fw-bold text-success fs-4">
+                                                R$ @Model.Pedido.ped_valor_total
+                                            </td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="text-center py-5">
+                                <i class="fa fa-box-open fa-3x text-muted mb-3"></i>
+                                <h5 class="text-muted">Nenhum item encontrado</h5>
+                                <p class="text-muted">
+                                    Este pedido não possui itens cadastrados.
+                                </p>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- Pedido Não Encontrado -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-body text-center py-5">
+                        <i class="fa fa-exclamation-triangle fa-3x text-warning mb-3"></i>
+                        <h4 class="text-muted mb-3">Pedido não encontrado</h4>
+                        <p class="text-muted mb-4">
+                            O pedido solicitado não foi encontrado ou não existe mais no sistema.
+                        </p>
+                        <a href="/Pedidos" class="btn btn-primary">
+                            <i class="fa fa-arrow-left"></i> Voltar à Lista de Pedidos
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+<!-- Modal -->
+<div class="modal fade" id="statusModal" tabindex="-1" aria-labelledby="statusModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title" id="statusModalLabel">Alterar Status do Pedido</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+
+            <div class="modal-body">
+                <form id="statusForm">
+                    <div class="mb-3">
+                        <label for="newStatus" class="form-label">Novo Status</label>
+                        <select class="form-select" id="newStatus" name="newStatus">
+                            <option value="Pendente">Pendente</option>
+                            <option value="Aprovado">Aprovado</option>
+                            <option value="Cancelado">Cancelado</option>
+                            <option value="Finalizado">Finalizado</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="saveStatusBtn">Salvar</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $("#saveStatusBtn").click(function () {
+            var pedidoId = $("#pedidoId").val();
+            var status = $("#newStatus").val();
+                var token = $('input[name="__RequestVerificationToken"]').val();
+
+            $.ajax({
+                url: "?handler=UpdateStatus",   
+                type: "POST",
+                data: {
+                    __RequestVerificationToken: token,
+                    id: pedidoId,
+                    status: status
+                },
+                success: function (result) {
+                    // Update badge text without reloading
+                    var badge = $("#status");
+                    badge.text(status);
+
+                    // Update badge class
+                    badge.removeClass().addClass("badge fs-6");
+                    switch (status) {
+                        case "Pendente": badge.addClass("bg-warning text-dark"); break;
+                        case "Aprovado": badge.addClass("bg-success"); break;
+                        case "Cancelado": badge.addClass("bg-danger"); break;
+                        case "Finalizado": badge.addClass("bg-primary"); break;
+                        default: badge.addClass("bg-secondary"); break;
+                    }
+
+                    $("#statusModal").modal("hide");
+                },
+                error: function () {
+                    alert("Erro ao atualizar status");
+                }
+            });
+        });
+    </script>
+}
+
+<style>
+
+    /* Animações suaves */
+    .card {
+        transition: all 0.3s ease;
+    }
+
+        .card:hover {
+            transform: translateY(-2px);
+        }
+
+    .table tbody tr:hover {
+        background-color: rgba(0, 123, 255, 0.05) !important;
+    }
+
+    /* Badge personalizado */
+    .badge {
+        font-weight: 500;
+    }
+
+    /* Cores dos status */
+    .bg-warning.text-dark {
+        color: #856404 !important;
+    }
+</style>

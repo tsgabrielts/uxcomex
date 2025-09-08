@@ -1,0 +1,66 @@
+﻿@page "{id:guid?}"
+@model uxcomex.Presentation.Pages.Produtos.CreateModel
+<h2>@(Model.IsEdit ? "Editar Produto" : "Criar Novo Produto")</h2>
+
+
+<div class="row">
+    <div class="col-md-6">
+        <form method="post">
+            @Html.AntiForgeryToken()
+            @if (Model.IsEdit)
+            {
+                <input type="hidden" asp-for="Produto.pro_id" />
+            }
+
+            <div class="mb-3">
+                <label asp-for="Produto.pro_nome" class="form-label">Nome *</label>
+                <input asp-for="Produto.pro_nome" class="form-control" placeholder="Digite o nome do Produto" />
+                <span asp-validation-for="Produto.pro_nome" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Produto.pro_descricao" class="form-label">Descrição *</label>
+                <input asp-for="Produto.pro_descricao" class="form-control" placeholder="Digite a descrição do Produto" />
+                <span asp-validation-for="Produto.pro_descricao" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Produto.pro_valor" class="form-label">Valor unitário *</label>
+                <input asp-for="Produto.pro_valor" class="form-control" step="0.01"
+                       lang="pt-BR" type="number" placeholder="Digite o valor unitário do produto" />
+                <span asp-validation-for="Produto.pro_valor" class="text-danger"></span>
+            </div>            
+            
+            <div class="mb-3">
+                <label asp-for="Produto.pro_quantidade_estoque" class="form-label">Quantidade em estoque *</label>
+                <input asp-for="Produto.pro_quantidade_estoque" type="number" class="form-control" placeholder="Digite a quantidade em estoque do produto" />
+                <span asp-validation-for="Produto.pro_quantidade_estoque" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <button type="submit" class="btn btn-success">
+                    <i class="fa fa-save"></i> @(Model.IsEdit ? "Atualizar Produto" : "Salvar Produto")
+                </button>
+                <a class="btn btn-secondary" href="/Produtos">
+                    <i class="fa fa-arrow-left"></i> Voltar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@if (ViewData.ModelState.ErrorCount > 0)
+{
+    <div class="alert alert-danger mt-3">
+        <h6>Corrija os seguintes erros:</h6>
+        <ul>
+            @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+            {
+                <li>@error.ErrorMessage</li>
+            }
+        </ul>
+    </div>
+}
+
+
+

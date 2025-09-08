@@ -1,0 +1,37 @@
+﻿@page
+@model uxcomex.Presentation.Pages.Produtos.IndexModel
+@{
+    var tableConfig = new DataTableViewModel
+    {
+        Title = "Produtos",
+        EntityName = "Produto",
+        CreateUrl = "/Produtos/Create",
+        EditUrlTemplate = "/Produtos/Create/{id}",
+        DeleteHandler = "/Produtos?handler=Delete",
+        AllowEdit = true,
+        Columns = new[] {"Nome", "Descrição" ,"Valor", "Estoque" },
+        Items = Model.Produtos.Select(p => new DataTableItem
+        {
+            Id = p.pro_id,
+            Values = new[] { p.pro_nome.ToString(), p.pro_descricao, p.pro_valor.ToString(), p.pro_quantidade_estoque.ToString() }
+        }).ToList()
+    };
+}
+
+@await Html.PartialAsync("_DataTablePartial", tableConfig)
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success mt-3">
+        @TempData["SuccessMessage"]
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger mt-3">
+        @TempData["ErrorMessage"]
+    </div>
+}
+
+<script src="~/js/data-table.js"></script>

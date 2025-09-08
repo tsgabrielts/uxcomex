@@ -1,0 +1,23 @@
+﻿@page
+@model uxcomex.Presentation.Pages.Pedidos.IndexModel
+@{
+    var tableConfig = new DataTableViewModel
+    {
+        Title = "Pedidos",
+        EntityName = "Pedido",
+        CreateUrl = "/Pedidos/Create",
+        EditUrlTemplate = "/Pedidos/Create/{id}",
+        DeleteHandler = "/Pedidos?handler=Delete",
+        DetailUrlTemplate = "/Pedidos/Details/{id}",
+        AllowEdit = false,
+        Columns = new[] { "Id do pedido", "Cliente", "Status", "Total" ,"Data" },
+        Items = Model.Pedidos.Select(p => new DataTableItem
+        {
+            Id = p.ped_id,
+            Values = new[] { p.ped_id.ToString(), p.cli_nome.ToString(), p.ped_status.ToString(), p.ped_valor_total, p.ped_data.ToString("dd/MM/yyyy") }
+        }).ToList()
+    };
+}
+
+@await Html.PartialAsync("_DataTablePartial", tableConfig)
+<script src="~/js/data-table.js"></script>
