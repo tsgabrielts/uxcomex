@@ -1,11 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using uxcomex.Domain.ViewModel;
 using System.ComponentModel.DataAnnotations;
+using System.Globalization;
 using uxcomex.Application.Interfaces;
-using ProdEntity = uxcomex.Domain.Entities.Produtos;
+using uxcomex.Domain.ViewModel;
 using PedEntity = uxcomex.Domain.Entities.Pedidos;
+using ProdEntity = uxcomex.Domain.Entities.Produtos;
 
 namespace uxcomex.Presentation.Pages.Pedidos
 {
@@ -54,7 +55,7 @@ namespace uxcomex.Presentation.Pages.Pedidos
             ProdutosSelect = ProdutosDisponiveis.Select(x => new SelectListItem
             {
                 Value = x.pro_id.ToString(),
-                Text = $"{x.pro_nome} - {x.pro_valor:C} (Estoque: {x.pro_quantidade_estoque})"
+                Text = $"{x.pro_nome} - {x.pro_valor.ToString("C", new CultureInfo("pt-BR"))} (Estoque: {x.pro_quantidade_estoque})"
             }).ToList();
         }
 
@@ -75,17 +76,17 @@ namespace uxcomex.Presentation.Pages.Pedidos
 
                     await _pedidosService.FluxoRegistroPedido(pedido, Itens);
 
-                    TempData["Sucesso"] = $"Pedido criado com sucesso!";
+                    TempData["SuccessMessage"] = $"Pedido criado com sucesso!";
                 } else
                 {
-                    TempData["Erro"] = "Insira pelo menos um item";
+                    TempData["ErrorMessage"] = "Insira pelo menos um item";
                     await FillSelects();
                     return Page();
                 }
             }catch(Exception ex)
             {
                 _logger.LogError(ex, "Erro ao criar pedido");
-                TempData["Erro"] = ex.Message;
+                TempData["ErrorMessage"] = ex.Message;
 
                 await FillSelects();
                 return Page();

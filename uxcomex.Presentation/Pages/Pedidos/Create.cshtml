@@ -6,8 +6,7 @@
 
 @if (TempData["Erro"] != null)
 {
-    @section Scripts
-    {
+
         <script>
             Swal.fire({
                 icon: 'error',
@@ -15,115 +14,114 @@
                     text: '@TempData["Erro"]'
             });
         </script>
-    }
 }
 
-    <div class="row mb-5 mb-2">
-        <div class="col-md-12 mb-4">
-            <div class="card">
-                <div class="card-header">
-                    <h4><i class="fa fa-plus-circle" ></i> Criar Novo Pedido</h4>
-                </div>
-                <div class="card-body">
-                    <form method="post">
-                        <div asp-validation-summary="All" class="text-danger mb-3"></div>
+<div class="row mb-5 mb-2">
+    <div class="col-md-12 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h4><i class="fa fa-plus-circle"></i> Criar Novo Pedido</h4>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    <div asp-validation-summary="All" class="text-danger mb-3"></div>
 
-                        <!-- Informações do Pedido -->
-                        <div class="row mb-4">
-                            <div class="col-12">
-                                <div class="form-group">
-                                    <label asp-for="NovoPedido.ClienteId" class="form-label"></label>
-                                    <select asp-for="NovoPedido.ClienteId"
-                                            class="form-select select2-clientes"
-                                            asp-items="Model.ClientesSelect">
-                                        <option value="">-- Selecione um Cliente --</option>
-                                    </select>
-                                    <span asp-validation-for="NovoPedido.ClienteId" class="text-danger"></span>
-                                </div>
+                    <!-- Informações do Pedido -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="form-group">
+                                <label asp-for="NovoPedido.ClienteId" class="form-label"></label>
+                                <select asp-for="NovoPedido.ClienteId"
+                                        class="form-select select2-clientes"
+                                        asp-items="Model.ClientesSelect">
+                                    <option value="">-- Selecione um Cliente --</option>
+                                </select>
+                                <span asp-validation-for="NovoPedido.ClienteId" class="text-danger"></span>
                             </div>
-                            
                         </div>
 
-                        <!-- Itens do Pedido -->
-                        <div class="card">
-                            <div class="card-header d-flex justify-content-between align-items-center">
-                                <h5 class="mb-0">Itens do Pedido</h5>
-                                <button type="button" class="btn btn-sm btn-success" onclick="adicionarItem()">
-                                    <i class="fa fa-plus"></i> Adicionar Item
-                                </button>
-                            </div>
-                            <div class="card-body">
-                                <div id="itens-container">
-                                    @for (int i = 0; i < Model.Itens.Count; i++)
-                                    {
-                                        <div class="row item-row mb-3" data-index="@i">
-                                            <div class="col-md-5">
-                                                <select name="Itens[@i].ProdutoId"
-                                                        class="form-select produto-select select2-produtos"
-                                                        asp-items="Model.ProdutosSelect"
-                                                        onchange="atualizarProduto(this, @i)">
-                                                    <option value="">-- Selecione um Produto --</option>
-                                                </select>
-                                            </div>
-                                            <div class="col-md-2">
-                                                <input name="Itens[@i].Quantidade"
-                                                       class="form-control quantidade-input"
-                                                       type="number"
-                                                       min="0"
-                                                       placeholder="Qtd"
-                                                       onchange="calcularSubtotal(@i)" />
-                                            </div>
-                                            <div class="col-md-2">
-                                                <input name="Itens[@i].PrecoUnitario"
-                                                       class="form-control preco-input"
-                                                       type="number"
-                                                       placeholder="Preço"
-                                                       readonly />
-                                            </div>
-                                            <div class="col-md-2">
-                                                <input name="Itens[@i].Subtotal"
-                                                       class="form-control subtotal-input"
-                                                       type="number"
-                                                       placeholder="Subtotal"
-                                                       readonly />
-                                            </div>
-                                            <div class="col-md-1">
-                                                <button type="button" class="btn btn-danger btn-sm" onclick="removerItem(@i)">
-                                                    <i class="fa fa-trash"></i>
-                                                </button>
-                                            </div>
+                    </div>
+
+                    <!-- Itens do Pedido -->
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Itens do Pedido</h5>
+                            <button type="button" class="btn btn-sm btn-success" onclick="adicionarItem()">
+                                <i class="fa fa-plus"></i> Adicionar Item
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <div id="itens-container">
+                                @for (int i = 0; i < Model.Itens.Count; i++)
+                                {
+                                    <div class="row item-row mb-3" data-index="@i">
+                                        <div class="col-md-5">
+                                            <select name="Itens[@i].ProdutoId"
+                                                    class="form-select produto-select select2-produtos"
+                                                    asp-items="Model.ProdutosSelect"
+                                                    onchange="atualizarProduto(this, @i)">
+                                                <option value="">-- Selecione um Produto --</option>
+                                            </select>
                                         </div>
-                                    }
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Total e Ações -->
-                        <div class="row mt-4">
-                            <div class="col-md-8"></div>
-                            <div class="col-md-4">
-                                <div class="card bg-light">
-                                    <div class="card-body">
-                                        <h5>Valor Total: <span id="valor-total" class="text-success">R$ 0,00</span></h5>
+                                        <div class="col-md-2">
+                                            <input name="Itens[@i].Quantidade"
+                                                   class="form-control quantidade-input"
+                                                   type="number"
+                                                   min="0"
+                                                   placeholder="Qtd"
+                                                   onchange="calcularSubtotal(@i)" />
+                                        </div>
+                                        <div class="col-md-2">
+                                            <input name="Itens[@i].PrecoUnitario"
+                                                   class="form-control preco-input"
+                                                   type="number"
+                                                   placeholder="Preço"
+                                                   readonly />
+                                        </div>
+                                        <div class="col-md-2">
+                                            <input name="Itens[@i].Subtotal"
+                                                   class="form-control subtotal-input"
+                                                   type="number"
+                                                   placeholder="Subtotal"
+                                                   readonly />
+                                        </div>
+                                        <div class="col-md-1">
+                                            <button type="button" class="btn btn-danger btn-sm" onclick="removerItem(@i)">
+                                                <i class="fa fa-trash"></i>
+                                            </button>
+                                        </div>
                                     </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Total e Ações -->
+                    <div class="row mt-4">
+                        <div class="col-md-8"></div>
+                        <div class="col-md-4">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h5>Valor Total: <span id="valor-total" class="text-success">R$ 0,00</span></h5>
                                 </div>
                             </div>
                         </div>
+                    </div>
 
-                        <div class="row mt-3">
-                            <div class="col-12 d-flex justify-content-end">
-                                <a href="/Pedidos" class="btn btn-secondary me-2">Cancelar</a>
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="fa fa-save"></i> Salvar Pedido
-                                </button>
-                            </div>
+                    <div class="row mt-3">
+                        <div class="col-12 d-flex justify-content-end">
+                            <a href="/Pedidos" class="btn btn-secondary me-2">Cancelar</a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fa fa-save"></i> Salvar Pedido
+                            </button>
                         </div>
-                    </form>
-                </div>
+                    </div>
+                </form>
             </div>
         </div>
-
     </div>
+
+</div>
 
 @section Scripts {
     <!-- Select2 CSS e JS -->
@@ -208,7 +206,7 @@
                             <option value="">-- Selecione um Produto --</option>
                             @foreach (var produto in Model.ProdutosSelect)
                             {
-                                    <option value="@produto.Value">@produto.Text</option>
+                                                <option value="@produto.Value">@produto.Text</option>
                             }
                         </select>
                     </div>
@@ -311,7 +309,6 @@
     </script>
 
     <style>
-        /* Estilos para garantir que o Select2 funcione corretamente */
         .select2-container {
             width: 100% !important;
         }
@@ -330,15 +327,15 @@
             border-radius: 0.375rem !important;
         }
 
-            .select2-container--default .select2-selection--single .select2-selection__rendered {
-                line-height: 36px !important;
-                padding-left: 12px !important;
-                padding-right: 20px !important;
-            }
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            line-height: 36px !important;
+            padding-left: 12px !important;
+            padding-right: 20px !important;
+        }
 
-            .select2-container--default .select2-selection--single .select2-selection__arrow {
-                height: 36px !important;
-            }
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 36px !important;
+        }
 
         .select2-dropdown {
             border: 1px solid #ced4da !important;
@@ -370,7 +367,6 @@
             margin-top: 5px;
         }
 
-        /* Highlighting para search */
         .select2-results__option--highlighted {
             background-color: #007bff !important;
             color: white !important;
